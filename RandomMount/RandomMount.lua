@@ -100,6 +100,6 @@ windower.register_event('addon command', function()
 
     -- Generate random number and use it to choose a mount
     local mount_index = math.ceil(math.random() * table.getn(mounts))
-    windower.send_command('input /mount ' .. mounts[mount_index].en)
+    windower.send_command('input /mount "' .. mounts[mount_index].en .. '"')
   end
 end)
