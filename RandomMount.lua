@@ -4,11 +4,14 @@ _addon.version = '2.0.0'
 _addon.commands = {'rm'}
 
 res = require('resources')
+config = require('config')
 owned_kis = {}
 owned_mounts = {}
+settings = config.load({
+  ['prevent_music'] = 1
+})
 
--- TEST DATA SETUP
--- Use the below data to set example key items and mounts for quick and easy debugging of for loops.
+-- Use the below data to set example key items and mounts for quick and easy debugging of the for loops.
 --
 -- owned_kis = { --tmp test data
 --   3073, --raptor mount
@@ -73,33 +76,55 @@ end)
 -- Generate random numbers based on the OS time
 math.randomseed(os.time())
 
--- When player uses //rm
-windower.register_event('addon command', function()
-  local player = windower.ffxi.get_player()
-  local was_mounted = false
+-- When player uses //rm [setting]
+windower.register_event('addon command', function(...)
+  local args = {...}
+  if args[1] == nil then
+    local player = windower.ffxi.get_player()
+    local was_mounted = false
 
-  -- If the player is mounted, dismount now
-  for _, buff in pairs(player.buffs) do
-    if buff == 252 then --mounted buff
-      windower.send_command('input /dismount')
-      was_mounted = true
+    -- If the player is mounted, dismount now
+    for _, buff in pairs(player.buffs) do
+      if buff == 252 then --mounted buff
+        windower.send_command('input /dismount')
+        was_mounted = true
+      end
+    end
+
+    -- If the player was not mounted, attempt to select a random mount
+    if was_mounted == false then
+      local mounts = get_owned_mounts()
+
+      -- If no KIs are found, use the raptor as a fallback. Player may have just logged in and KIs are still loading.
+      if table.getn(mounts) == 0 then
+        windower.add_to_chat(4, 'Unable to find mounts. Using raptor mount instead.')
+        windower.add_to_chat(4, 'Maybe key items have not loaded yet.')
+        windower.send_command('input /mount raptor')
+        -- print('/mount raptor')
+        return
+      end
+
+      -- Generate random number and use it to choose a mount
+      local mount_index = math.ceil(math.random() * table.getn(mounts))
+      windower.send_command('input /mount ' .. mounts[mount_index].en)
+      -- print('/mount ' .. mounts[mount_index].en)
+    end
+  elseif args[1] == 'music' then
+    -- Toggle mount music
+    if settings.prevent_music == 1 then
+      print('RandomMount: Mount music enabled')
+      settings.prevent_music = 0
+    else
+      print('RandomMount: Mount music disabled')
+      settings.prevent_music = 1
     end
   end
+end)
 
-  -- If the player was not mounted, attempt to select a random mount
-  if was_mounted == false then
-    local mounts = get_owned_mounts()
-
-    -- If no KIs are found, use the raptor as a fallback. Player may have just logged in and KIs are still loading.
-    if table.getn(mounts) == 0 then
-      windower.add_to_chat(4, 'Unable to find mounts. Using raptor mount instead.')
-      windower.add_to_chat(4, 'Maybe key items have not loaded yet.')
-      windower.send_command('input /mount raptor')
-      return
-    end
-
-    -- Generate random number and use it to choose a mount
-    local mount_index = math.ceil(math.random() * table.getn(mounts))
-    windower.send_command('input /mount "' .. mounts[mount_index].en .. '"')
+-- Prevent mount music from activating if settings.prevent_music is 1
+windower.register_event('incoming chunk', function(id, data)
+  if id == 0x5F and data:byte(5) == 4 and data:byte(7) == 84 and settings.prevent_music == 1 then
+    -- print('prevented mount music')
+    return true
   end
 end)
