@@ -1,6 +1,6 @@
 _addon.name    = 'RandomMount'
 _addon.author  = 'Xurion of Bismarck'
-_addon.version = '2.0.0'
+_addon.version = '2.1.0'
 _addon.commands = {'rm'}
 
 res = require('resources')
