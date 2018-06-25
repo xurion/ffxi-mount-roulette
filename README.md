@@ -4,7 +4,12 @@ A Lua addon to summon a mount at random for Windower.
 
 ## Usage
 
-1. Download and copy the RandomMount directory to your Windower addon directory.
-2. Type `//lua load randommount` to load the addon.
-3. Type `//rm` to summon a random mount.
-4. Type `//rm` again to dismount.
+1. Download and place all files into an addons/RandomMount directory.
+2. Type `//lua load randommount` to load RandomMount.
+
+### Summon a random mount
+`//rm`
+
+### Mount music
+Due to popular request, the mount music is disabled by default. To toggle this setting:
+`//rm music`
