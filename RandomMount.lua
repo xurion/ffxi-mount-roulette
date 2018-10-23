@@ -127,3 +127,9 @@ windower.register_event('incoming chunk', function(id, data)
     return true
   end
 end)
+
+windower.register_event('gain buff', function(buff_id)
+  if buff_id == 252 then
+    windower.send_command('timers c Mount 60 down')
+  end
+end)
