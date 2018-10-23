@@ -124,7 +124,6 @@ end)
 -- Prevent mount music from activating if settings.prevent_music is 1
 windower.register_event('incoming chunk', function(id, data)
   if id == 0x5F and data:byte(5) == 4 and data:byte(7) == 84 and settings.prevent_music == 1 then
-    -- print('prevented mount music')
     return true
   end
 end)
