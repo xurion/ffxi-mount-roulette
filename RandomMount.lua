@@ -46,14 +46,18 @@ end
 
 -- Returns all mounts owned by the player
 function get_owned_mounts()
-  if table.getn(owned_mounts) == 0 then
+  if #owned_mounts == 0 then
     for _, ki_id in pairs(owned_kis) do --cycle over all KIs owned
-      for _, mount_ki in pairs(get_mount_kis_from_resources()) do
-        if mount_ki ~= "trainer's whistle" then --don't care about the quest KI
-          if res.key_items[ki_id].en == mount_ki then
-            for _, mount in pairs(res.mounts) do
-              if string.find(string.lower(mount_ki), '♪' .. string.lower(mount.en)) ~= nil then
-                table.insert(owned_mounts, mount)
+      if res.key_items[ki_id] == nil then
+        print('Unknown key item ID', ki_id)
+      else
+        for _, mount_ki in pairs(get_mount_kis_from_resources()) do
+          if mount_ki ~= "trainer's whistle" then --don't care about the quest KI          
+            if res.key_items[ki_id].en == mount_ki then
+              for _, mount in pairs(res.mounts) do
+                if string.find(string.lower(mount_ki), '♪' .. string.lower(mount.en)) ~= nil then
+                  table.insert(owned_mounts, mount)
+                end
               end
             end
           end
