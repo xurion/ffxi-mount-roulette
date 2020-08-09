@@ -43,7 +43,7 @@ windower.register_event('incoming chunk', function(id)
     end
 end)
 
-windower.register_event('addon command', function(command, ...)
+windower.register_event('addon command', function(command)
     command = command and command:lower() or 'mount'
 
     if commands[command] then
