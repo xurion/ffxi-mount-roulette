@@ -3,8 +3,7 @@ _addon.author  = 'Dean James (Xurion of Bismarck)'
 _addon.version = '3.0.0'
 _addon.commands = {'mountroulette', 'mr'}
 
-require('sets')
-require('logger')
+require('luau')
 resources = require('resources')
 config = require('config')
 settings = config.load({
@@ -13,10 +12,10 @@ settings = config.load({
 
 math.randomseed(os.time())
 
-allowed_mounts = S{}
-possible_mounts = S{}
+allowed_mounts = L{}
+possible_mounts = L{}
 for _, mount in ipairs(resources.mounts) do
-    possible_mounts:add(mount.name:lower())
+    possible_mounts:append(mount.name:lower())
 end
 
 function update_allowed_mounts()
@@ -25,14 +24,14 @@ function update_allowed_mounts()
     for _, id in ipairs(kis) do
         local ki = resources.key_items[id]
         if ki.category == 'Mounts' and ki.name ~= "trainer's whistle" then -- Don't care about the quest KI
-            local mount = possible_mounts:find(function(possible_mount)
+            local mount_index = possible_mounts:find(function(possible_mount)
                 return windower.wc_match(ki.name:lower(), '♪' .. possible_mount .. '*')
             end)
+            local mount = possible_mounts[mount_index]
 
             -- Add this to allowed mounts if it is not already there and it is not blacklisted
             if not allowed_mounts:contains(mount) and not settings.blacklist:contains(mount) then
-                -- print('adding', )
-                allowed_mounts:add(mount)
+                allowed_mounts:append(mount)
             end
         end
     end
@@ -52,7 +51,7 @@ windower.register_event('addon command', function(command, ...)
     command = command and command:lower() or 'mount'
 
     if commands[command] then
-        commands[command]({...})
+        commands[command](L{...})
     else
         commands.help()
     end
@@ -71,16 +70,19 @@ commands.mount = function()
         end
     end
 
+    if #allowed_mounts == 0 then
+        windower.add_to_chat(8, 'You have blacklisted all mounts')
+        return
+    end
+
     -- Generate random number and use it to choose a mount
-    local mount_index = math.ceil(math.random() * allowed_mounts:length())
-    print(mount_index, allowed_mounts:length())
-    -- windower.send_command('input /mount ' .. allowed_mounts[mount_index])
-    print('/mount ' .. allowed_mounts[mount_index])
+    local mount_index = math.ceil(math.random() * #allowed_mounts)
+    windower.send_command('input /mount ' .. allowed_mounts[mount_index])
 end
 
 commands.blacklist = function(args)
-    local operation = args[1]:lower()
-    local mount = args[2]:lower()
+    local operation = args:remove(1)
+    local mount = args:concat(' '):lower()
 
     if not operation or not mount then
         commands.help()
@@ -92,14 +94,22 @@ commands.blacklist = function(args)
         return
     end
 
-    if operation == 'add' and not table.find(settings.blacklist, mount) then
+    if operation == 'add' and not settings.blacklist:contains(mount) then
+        for k, v in ipairs(allowed_mounts) do
+            if v == mount then
+                allowed_mounts:remove(k)
+            end
+        end
         settings.blacklist:add(mount)
-        allowed_mounts:remove(mount)
         windower.add_to_chat(8, 'The ' .. mount .. ' mount is now blacklisted')
         settings:save()
     elseif operation == 'remove' then
-        settings.blacklist:remove(mount)
-        allowed_mounts:add(mount)
+        for k, v in ipairs(T(settings.blacklist)) do
+            if v == mount then
+                settings.blacklist:remove(k)
+            end
+        end
+        allowed_mounts:append(mount)
         windower.add_to_chat(8, 'The ' .. mount .. ' mount is no longer blacklisted')
         settings:save()
     end
