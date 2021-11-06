@@ -26,9 +26,9 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ]]
 
-_addon.name    = 'Mount Roulette'
-_addon.author  = 'Dean James (Xurion of Bismarck)'
-_addon.version = '3.0.1'
+_addon.name = 'Mount Roulette'
+_addon.author = 'Dean James (Xurion of Bismarck)'
+_addon.version = '3.1.0'
 _addon.commands = {'mountroulette', 'mr'}
 
 require('lists')
@@ -84,7 +84,9 @@ windower.register_event('incoming chunk', function(id)
     end
 end)
 
-windower.register_event('addon command', function()
+commands = {}
+
+commands.mount = function()
     local player = windower.ffxi.get_player()
 
     -- If the player is mounted, dismount now
@@ -104,6 +106,15 @@ end
 
 commands.blacklist = function(args)
     local operation = args:remove(1)
+
+    if not operation then
+        windower.add_to_chat(8, 'Blacklisted mounts:')
+        for k, v in ipairs(blacklist) do
+            windower.add_to_chat(8, '  ' .. v)
+        end
+        return
+    end
+
     local mount = args:concat(' '):lower()
 
     if not operation or not mount then
@@ -141,10 +152,21 @@ commands.help = function()
     windower.add_to_chat(8, '---Mount Roulette---')
     windower.add_to_chat(8, 'Available commands:')
     windower.add_to_chat(8, '//mr mount (or just //mr) - Selects a mount at random, or dismounts if mounted')
+    windower.add_to_chat(8, '//mr blacklist - show blacklisted mounts')
     windower.add_to_chat(8, '//mr blacklist add <mount> - blacklist a mount so it is never randomly selected')
-    windower.add_to_chat(8, '//mr blacklist remove <mount> - remove a blacklisted mount')
+    windower.add_to_chat(8, '//mr blacklist remove <mount> - remove a mount from the blacklist')
     windower.add_to_chat(8, '//mr help - displays this help')
 end
+
+windower.register_event('addon command', function(command, ...)
+    command = command and command:lower() or 'mount'
+
+    if commands[command] then
+        commands[command](L{...})
+    else
+        commands.help()
+    end
+end)
 
 function save_settings()
     settings.blacklist = table.concat(blacklist, ",")
