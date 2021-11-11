@@ -61,18 +61,18 @@ function update_allowed_mounts()
     for _, id in ipairs(kis) do
         local ki = resources.key_items[id]
         if (ki ~= nil) then
-			if ki.category == 'Mounts' and ki.name ~= "trainer's whistle" then -- Don't care about the quest KI
-				local mount_index = possible_mounts:find(function(possible_mount)
-					return windower.wc_match(ki.name:lower(), '♪' .. possible_mount .. '*')
-				end)
-				local mount = possible_mounts[mount_index]
+            if ki.category == 'Mounts' and ki.name ~= "trainer's whistle" then -- Don't care about the quest KI
+                local mount_index = possible_mounts:find(function(possible_mount)
+                    return windower.wc_match(ki.name:lower(), '♪' .. possible_mount .. '*')
+                end)
+                local mount = possible_mounts[mount_index]
 
-				-- Add this to allowed mounts if it is not already there and it is not blacklisted
-				if not allowed_mounts:contains(mount) and not S(blacklist):contains(mount) then
-					allowed_mounts_set:add(mount)
-				end
-			end
-		end
+                -- Add this to allowed mounts if it is not already there and it is not blacklisted
+                if not allowed_mounts:contains(mount) and not S(blacklist):contains(mount) then
+                    allowed_mounts_set:add(mount)
+                end
+            end
+        end
     end
 
     allowed_mounts = L(allowed_mounts_set)
