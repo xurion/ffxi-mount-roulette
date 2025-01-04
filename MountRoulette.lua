@@ -28,7 +28,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 _addon.name = 'Mount Roulette'
 _addon.author = 'Dean James (Xurion of Bismarck)'
-_addon.version = '3.1.0'
+_addon.version = '3.2.0'
 _addon.commands = {'mountroulette', 'mr'}
 
 require('lists')
@@ -48,23 +48,15 @@ for _, mount in pairs(resources.mounts) do
 end
 
 function update_allowed_mounts()
+    local obtained_mounts = windower.ffxi.get_abilities().mounts
     local allowed_mounts_set = S{}
-    local kis = windower.ffxi.get_key_items()
 
-    for _, id in ipairs(kis) do
-        local ki = resources.key_items[id]
-        if (ki ~= nil) then
-            if ki.category == 'Mounts' and ki.name ~= "trainer's whistle" then -- Don't care about the quest KI
-                local mount_index = possible_mounts:find(function(possible_mount)
-                    return windower.wc_match(ki.name:lower(), '♪' .. possible_mount .. '*')
-                end)
-                local mount = possible_mounts[mount_index]
+    for _, mount_id in ipairs(obtained_mounts) do
+        local obtained_mount_name = resources.mounts[mount_id].name:lower()
 
-                -- Add this to allowed mounts if it is not blacklisted
-                if not settings.blacklist:contains(mount) then
-                    allowed_mounts_set:add(mount)
-                end
-            end
+        -- Add this to allowed mounts if it is not blacklisted
+        if not settings.blacklist:contains(obtained_mount_name) then
+            allowed_mounts_set:add(obtained_mount_name)
         end
     end
 
